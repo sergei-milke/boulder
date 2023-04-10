@@ -9,6 +9,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"math/big"
 	"math/rand/v2"
 	"net/http"
