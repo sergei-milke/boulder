@@ -73,6 +73,10 @@ const (
 	getCertInfoPath = "/get/certinfo/"
 	buildIDPath     = "/build"
 	healthzPath     = "/healthz"
+
+	// Plesk
+	caRootPath      = "/ca-root"
+	caEcdsaRootPath = "/ca-ecdsa-root"
 )
 
 const (
@@ -459,6 +463,18 @@ func (wfe *WebFrontEndImpl) Handler(stats prometheus.Registerer, oTelHTTPOptions
 	wfe.HandleFunc(m, buildIDPath, wfe.BuildID, "GET")
 	wfe.HandleFunc(m, healthzPath, wfe.Healthz, "GET")
 
+<<<<<<< HEAD
+=======
+    // Plesk
+    wfe.HandleFunc(m, caRootPath, wfe.CARoot, "GET")
+    wfe.HandleFunc(m, caEcdsaRootPath, wfe.CAEcdsaRoot, "GET")
+
+	// Endpoint for draft-ietf-acme-ari
+	if features.Get().ServeRenewalInfo {
+		wfe.HandleFunc(m, renewalInfoPath, wfe.RenewalInfo, "GET", "POST")
+	}
+
+>>>>>>> 44bceaa64 (FEATURE Added ability to get Ecdsa Root CA content)
 	// We don't use our special HandleFunc for "/" because it matches everything,
 	// meaning we can wind up returning 405 when we mean to return 404. See
 	// https://github.com/letsencrypt/boulder/issues/717
@@ -515,6 +531,45 @@ func addRequesterHeader(w http.ResponseWriter, requester int64) {
 	}
 }
 
+<<<<<<< HEAD
+=======
+// CARoot returns Root CA content
+func (wfe *WebFrontEndImpl) CARoot(
+	ctx context.Context,
+	logEvent *web.RequestEvent,
+	response http.ResponseWriter,
+	request *http.Request) {
+	filePath := "test/certs/webpki/root-rsa.cert.pem"
+	caRoot, err := ioutil.ReadFile(filePath)
+
+	if err != nil {
+		prob := probs.ServerInternal(fmt.Sprintf("could not get root ca: %v", err))
+		wfe.sendError(response, logEvent, prob, nil)
+		return
+	}
+
+	response.Write(caRoot)
+}
+
+// CAEcdsaRoot returns ecdsa Root CA content
+func (wfe *WebFrontEndImpl) CAEcdsaRoot(
+	ctx context.Context,
+	logEvent *web.RequestEvent,
+	response http.ResponseWriter,
+	request *http.Request) {
+	filePath := "test/certs/webpki/root-ecdsa.cert.pem"
+	caEcdsaRoot, err := ioutil.ReadFile(filePath)
+
+	if err != nil {
+		prob := probs.ServerInternal(fmt.Sprintf("could not get ecdsa root ca: %v", err))
+		wfe.sendError(response, logEvent, prob, nil)
+		return
+	}
+
+	response.Write(caEcdsaRoot)
+}
+
+>>>>>>> 44bceaa64 (FEATURE Added ability to get Ecdsa Root CA content)
 // Directory is an HTTP request handler that provides the directory
 // object stored in the WFE's DirectoryEndpoints member with paths prefixed
 // using the `request.Host` of the HTTP request.
