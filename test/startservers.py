@@ -278,7 +278,7 @@ def startChallSrv():
     # integration tests.
     challSrvProcess = run([
         './bin/chall-test-srv',
-        '--defaultIPv4', os.environ.get("FAKE_DNS"),
+        '--defaultIPv4', '',
         '-defaultIPv6', '',
         '--dns01', ':8053,:8054',
         '--doh', ':8343,:8443',
