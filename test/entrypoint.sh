@@ -4,6 +4,48 @@ set -e -u
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+# Configure database URL symlinks
+# This is required for `docker compose up` to work after commit 2197eeac7
+# which reorganized database URL files into subdirectories.
+# Without this, services fail with "no such file or directory" errors.
+# NOTE: Added for Plesk deployment compatibility where test.sh is not used.
+configure_database_endpoints() {
+  local dburl_target_dir="proxysql"
+
+  # Check if Vitess should be used instead of ProxySQL + MariaDB
+  if [[ "${USE_VITESS:-false}" == "true" ]]; then
+    dburl_target_dir="vitess"
+    echo "Using Vitess + MySQL 8.4"
+  else
+    echo "Using ProxySQL + MariaDB"
+  fi
+
+  # List of database URL files that need symlinks
+  local db_url_files=(
+    badkeyrevoker_dburl
+    cert_checker_dburl
+    incidents_dburl
+    revoker_dburl
+    sa_dburl
+    sa_ro_dburl
+  )
+
+  echo "Configuring database URL symlinks from dburls/${dburl_target_dir}/ ..."
+
+  # Remove any existing symlinks to avoid conflicts
+  rm -f "${DIR}/../test/secrets/"*_dburl 2>/dev/null || true
+
+  # Create symlinks from the appropriate subdirectory
+  for file in "${db_url_files[@]}"; do
+    ln -sf "dburls/${dburl_target_dir}/${file}" "${DIR}/../test/secrets/${file}"
+  done
+
+  echo "Database URL symlinks configured successfully"
+}
+
+# Execute database endpoint configuration
+configure_database_endpoints
+
 # Start rsyslog. Note: Sometimes for unknown reasons /var/run/rsyslogd.pid is
 # already present, which prevents the whole container from starting. We remove
 # it just in case it's there.
