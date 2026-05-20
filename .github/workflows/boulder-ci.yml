@@ -12,6 +12,8 @@ on:
   pull_request:
     branches:
       - '**'
+  # Allow manually triggering the workflow from the Actions tab
+  workflow_dispatch:
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
