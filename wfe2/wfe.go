@@ -468,8 +468,6 @@ func (wfe *WebFrontEndImpl) Handler(stats prometheus.Registerer, oTelHTTPOptions
 	wfe.HandleFunc(m, caRootPath, wfe.CARoot, "GET")
 	wfe.HandleFunc(m, caEcdsaRootPath, wfe.CAEcdsaRoot, "GET")
 
-	// Endpoint for draft-ietf-acme-ari
-	wfe.HandleFunc(m, renewalInfoPath, wfe.RenewalInfo, "GET", "POST")
 	// We don't use our special HandleFunc for "/" because it matches everything,
 	// meaning we can wind up returning 405 when we mean to return 404. See
 	// https://github.com/letsencrypt/boulder/issues/717
