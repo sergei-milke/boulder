@@ -81,6 +81,8 @@ type mockDNSData struct {
 	aRecords map[string][]string
 	// A map of host to IPv6 addresses in string form for AAAA record responses.
 	aaaaRecords map[string][]string
+	// A map of host to TXT records.
+	txtRecords map[string][]string
 	// A map of host to CAA policies for CAA responses.
 	caaRecords map[string][]MockCAAPolicy
 	// A map of host to CNAME records.
@@ -129,7 +131,7 @@ func (c *Config) validate() error {
 	// There needs to be at least one challenge type with a bind address
 	if len(c.HTTPOneAddrs) < 1 &&
 		len(c.HTTPSOneAddrs) < 1 &&
-		len(c.DNSOneAddrs) < 1 &&
+		len(c.DNSAddrs) < 1 &&
 		len(c.TLSALPNOneAddrs) < 1 {
 		return fmt.Errorf(
 			"config must specify at least one HTTPOneAddrs entry, one HTTPSOneAddr " +
@@ -163,6 +165,7 @@ func New(config Config) (*ChallSrv, error) {
 			defaultIPv6:     defaultIPv6,
 			aRecords:        make(map[string][]string),
 			aaaaRecords:     make(map[string][]string),
+			txtRecords:      make(map[string][]string),
 			caaRecords:      make(map[string][]MockCAAPolicy),
 			cnameRecords:    make(map[string]string),
 			servFailRecords: make(map[string]bool),

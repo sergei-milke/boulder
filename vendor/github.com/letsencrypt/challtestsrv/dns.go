@@ -149,16 +149,9 @@ func (s *ChallSrv) GetDNSAAAARecord(host string) []string {
 	return s.dnsMocks.aaaaRecords[host]
 }
 
-// CAAPolicy holds a tag and a value for a CAA policy record. See
-// https://tools.ietf.org/html/rfc6844
-type CAAPolicy struct {
-	Tag   string
-	Value string
-}
-
 // AddDNSCAARecord adds CAA records that will be returned when querying
 // CAA for the given host.
-func (s *ChallSrv) AddDNSCAARecord(host string, policies []CAAPolicy) {
+func (s *ChallSrv) AddDNSCAARecord(host string, policies []MockCAAPolicy) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
