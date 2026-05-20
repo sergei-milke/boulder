@@ -184,10 +184,10 @@ services:
       #   server version for the right syntax to use near '$$ from dual limit 10001'
       test: [ "CMD", "mysql", "-h", "127.0.0.1", "-P", "33577", "-D", "boulder_sa",
                 "-e", "SELECT 1 FROM serials"]
-      interval: 2s
+      interval: 5s
       timeout: 30s
-      retries: 3
-      start_period: 10s
+      retries: 30
+      start_period: 60s
       start_interval: 2s
     networks:
       bouldernet:
