@@ -17,7 +17,7 @@ import (
 func (s *ChallSrv) SetDefaultDNSIPv4(addr string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
-	s.dnsData.defaultIPv4 = addr
+	s.dnsMocks.defaultIPv4 = addr
 }
 
 // SetDefaultDNSIPv6 sets the default IPv6 address used for AAAA query responses
@@ -26,7 +26,7 @@ func (s *ChallSrv) SetDefaultDNSIPv4(addr string) {
 func (s *ChallSrv) SetDefaultDNSIPv6(addr string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
-	s.dnsData.defaultIPv6 = addr
+	s.dnsMocks.defaultIPv6 = addr
 }
 
 // GetDefaultDNSIPv4 gets the default IPv4 address used for A query responses
@@ -34,7 +34,7 @@ func (s *ChallSrv) SetDefaultDNSIPv6(addr string) {
 func (s *ChallSrv) GetDefaultDNSIPv4() string {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
-	return s.dnsData.defaultIPv4
+	return s.dnsMocks.defaultIPv4
 }
 
 // GetDefaultDNSIPv6 gets the default IPv6 address used for AAAA query responses
@@ -42,7 +42,7 @@ func (s *ChallSrv) GetDefaultDNSIPv4() string {
 func (s *ChallSrv) GetDefaultDNSIPv6() string {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
-	return s.dnsData.defaultIPv6
+	return s.dnsMocks.defaultIPv6
 }
 
 // AddDNSCNAMERecord sets a CNAME record that will be used like an alias when
@@ -52,7 +52,7 @@ func (s *ChallSrv) AddDNSCNAMERecord(host string, value string) {
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
 	value = dns.Fqdn(value)
-	s.dnsData.cnameRecords[host] = value
+	s.dnsMocks.cnameRecords[host] = value
 }
 
 // GetDNSCNAMERecord returns a target host if a CNAME is set for the querying
@@ -61,7 +61,7 @@ func (s *ChallSrv) GetDNSCNAMERecord(host string) string {
 	s.challMu.RLock()
 	host = dns.Fqdn(host)
 	defer s.challMu.RUnlock()
-	return s.dnsData.cnameRecords[host]
+	return s.dnsMocks.cnameRecords[host]
 }
 
 // DeleteDNSCAMERecord deletes any CNAME alias set for the given host.
@@ -69,7 +69,7 @@ func (s *ChallSrv) DeleteDNSCNAMERecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	delete(s.dnsData.cnameRecords, host)
+	delete(s.dnsMocks.cnameRecords, host)
 }
 
 // AddDNSTXTRecord adds a TXT record for the given host with the given content.
@@ -77,7 +77,7 @@ func (s *ChallSrv) AddDNSTXTRecord(host, content string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	s.dnsData.txtRecords[host] = append(s.dnsData.txtRecords[host], content)
+	s.dnsMocks.txtRecords[host] = append(s.dnsMocks.txtRecords[host], content)
 }
 
 // GetDNSTXTRecords returns a slice of TXT record values for the given host. If
@@ -85,14 +85,14 @@ func (s *ChallSrv) AddDNSTXTRecord(host, content string) {
 func (s *ChallSrv) GetDNSTXTRecords(host string) []string {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
-	return s.dnsData.txtRecords[dns.Fqdn(host)]
+	return s.dnsMocks.txtRecords[dns.Fqdn(host)]
 }
 
 // DeleteDNSTXTRecord deletes all TXT records for the given host.
 func (s *ChallSrv) DeleteDNSTXTRecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
-	delete(s.dnsData.txtRecords, dns.Fqdn(host))
+	delete(s.dnsMocks.txtRecords, dns.Fqdn(host))
 }
 
 // AddDNSARecord adds IPv4 addresses that will be returned when querying for
@@ -101,7 +101,7 @@ func (s *ChallSrv) AddDNSARecord(host string, addresses []string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	s.dnsData.aRecords[host] = append(s.dnsData.aRecords[host], addresses...)
+	s.dnsMocks.aRecords[host] = append(s.dnsMocks.aRecords[host], addresses...)
 }
 
 // DeleteDNSARecord deletes any IPv4 addresses that will be returned when
@@ -110,7 +110,7 @@ func (s *ChallSrv) DeleteDNSARecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	delete(s.dnsData.aRecords, host)
+	delete(s.dnsMocks.aRecords, host)
 }
 
 // GetDNSARecord returns a slice of IPv4 addresses (in string form) that will be
@@ -119,7 +119,7 @@ func (s *ChallSrv) GetDNSARecord(host string) []string {
 	s.challMu.RLock()
 	host = dns.Fqdn(host)
 	defer s.challMu.RUnlock()
-	return s.dnsData.aRecords[host]
+	return s.dnsMocks.aRecords[host]
 }
 
 // AddDNSAAAARecord adds IPv6 addresses that will be returned when querying for
@@ -128,7 +128,7 @@ func (s *ChallSrv) AddDNSAAAARecord(host string, addresses []string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	s.dnsData.aaaaRecords[host] = append(s.dnsData.aaaaRecords[host], addresses...)
+	s.dnsMocks.aaaaRecords[host] = append(s.dnsMocks.aaaaRecords[host], addresses...)
 }
 
 // DeleteDNSAAAARecord deletes any IPv6 addresses that will be returned when
@@ -137,7 +137,7 @@ func (s *ChallSrv) DeleteDNSAAAARecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	delete(s.dnsData.aaaaRecords, host)
+	delete(s.dnsMocks.aaaaRecords, host)
 }
 
 // GetDNSAAAARecord returns a slice of IPv6 addresses (in string form) that will
@@ -146,7 +146,7 @@ func (s *ChallSrv) GetDNSAAAARecord(host string) []string {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
 	host = dns.Fqdn(host)
-	return s.dnsData.aaaaRecords[host]
+	return s.dnsMocks.aaaaRecords[host]
 }
 
 // CAAPolicy holds a tag and a value for a CAA policy record. See
@@ -162,7 +162,7 @@ func (s *ChallSrv) AddDNSCAARecord(host string, policies []CAAPolicy) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	s.dnsData.caaRecords[host] = append(s.dnsData.caaRecords[host], policies...)
+	s.dnsMocks.caaRecords[host] = append(s.dnsMocks.caaRecords[host], policies...)
 }
 
 // DeleteDNSCAARecord deletes any CAA policies that will be returned when
@@ -171,7 +171,7 @@ func (s *ChallSrv) DeleteDNSCAARecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	delete(s.dnsData.caaRecords, host)
+	delete(s.dnsMocks.caaRecords, host)
 }
 
 // GetDNSCAARecord returns a slice of CAA policy records that will
@@ -180,7 +180,7 @@ func (s *ChallSrv) GetDNSCAARecord(host string) []CAAPolicy {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
 	host = dns.Fqdn(host)
-	return s.dnsData.caaRecords[host]
+	return s.dnsMocks.caaRecords[host]
 }
 
 // AddDNSServFailRecord configures the chall srv to return SERVFAIL responses
@@ -189,7 +189,7 @@ func (s *ChallSrv) AddDNSServFailRecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	s.dnsData.servFailRecords[host] = true
+	s.dnsMocks.servFailRecords[host] = true
 }
 
 // DeleteDNSServFailRecord configures the chall srv to no longer return SERVFAIL
@@ -198,7 +198,7 @@ func (s *ChallSrv) DeleteDNSServFailRecord(host string) {
 	s.challMu.Lock()
 	defer s.challMu.Unlock()
 	host = dns.Fqdn(host)
-	delete(s.dnsData.servFailRecords, host)
+	delete(s.dnsMocks.servFailRecords, host)
 }
 
 // GetDNSServFailRecord returns true when the chall srv has been configured with
@@ -207,7 +207,7 @@ func (s *ChallSrv) GetDNSServFailRecord(host string) bool {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
 	host = dns.Fqdn(host)
-	return s.dnsData.servFailRecords[host]
+	return s.dnsMocks.servFailRecords[host]
 }
 
 // dnsAnswerFunc is a function that accepts a DNS question and returns one or

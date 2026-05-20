@@ -103,10 +103,10 @@ type Config struct {
 	HTTPOneAddrs []string
 	// HTTPSOneAddrs are the HTTPS HTTP-01 challenge server bind addresses/ports
 	HTTPSOneAddrs []string
-	// DOHAddrs are the DOH challenge server bind addresses/ports
+	// DOHAddrs are the DNS over HTTPS (DoH) server bind addresses/ports
 	DOHAddrs []string
-	// DNSOneAddrs are the DNS-01 challenge server bind addresses/ports
-	DNSOneAddrs []string
+	// DNSAddrs are the DNS over UDP/TCP server bind addresses/ports
+	DNSAddrs []string
 	// TLSALPNOneAddrs are the TLS-ALPN-01 challenge server bind addresses/ports
 	TLSALPNOneAddrs []string
 
@@ -189,19 +189,16 @@ func New(config Config) (*ChallSrv, error) {
 		challSrv.servers = append(challSrv.servers, httpOneServer(address, challSrv, true))
 	}
 
-	// If there are DNS-01 addresses configured, create DNS-01 servers
-	for _, address := range config.DNSOneAddrs {
-		challSrv.log.Printf("Creating TCP and UDP DNS-01 challenge server on %s\n", address)
+	// If there are DNS addresses configured, create DNS servers
+	for _, address := range config.DNSAddrs {
+		challSrv.log.Printf("Creating TCP and UDP DNS server on %s\n", address)
 		challSrv.servers = append(challSrv.servers,
-			dnsOneServer(address, challSrv.dnsHandler)...)
+			dnsServer(address, challSrv.dnsHandler)...)
 	}
 
 	for _, address := range config.DOHAddrs {
 		challSrv.log.Printf("Creating DoH server on %s\n", address)
-		s, err := dohServer(address, config.DOHCert, config.DOHCertKey, http.HandlerFunc(challSrv.dohHandler))
-		if err != nil {
-			return nil, err
-		}
+		s := dohServer(address, config.DOHCert, config.DOHCertKey, http.HandlerFunc(challSrv.dohHandler))
 		challSrv.servers = append(challSrv.servers, s)
 	}
 
