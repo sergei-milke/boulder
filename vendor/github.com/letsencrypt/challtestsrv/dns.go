@@ -169,7 +169,7 @@ func (s *ChallSrv) DeleteDNSCAARecord(host string) {
 
 // GetDNSCAARecord returns a slice of CAA policy records that will
 // be returned when querying CAA for the given host.
-func (s *ChallSrv) GetDNSCAARecord(host string) []CAAPolicy {
+func (s *ChallSrv) GetDNSCAARecord(host string) []MockCAAPolicy {
 	s.challMu.RLock()
 	defer s.challMu.RUnlock()
 	host = dns.Fqdn(host)
