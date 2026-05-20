@@ -102,7 +102,7 @@ func main() {
 		DOHAddrs:           dohAddresses,
 		DOHCert:            *dohCert,
 		DOHCertKey:         *dohCertKey,
-		DNSOneAddrs:        dnsOneAddresses,
+		DNSAddrs:           dnsOneAddresses,
 		TLSALPNOneAddrs:    tlsAlpnOneAddresses,
 		EnableRealDNS:      hardcodedEnableRealDNS,
 		UpstreamDNSServers: hardcodedUpstreamServers,
