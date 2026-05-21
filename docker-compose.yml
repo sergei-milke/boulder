@@ -253,12 +253,19 @@ networks:
       config:
         - subnet: 64.112.117.128/25
 
-  # External IPv6 network. Must be created manually once:
-  #   docker network create --ipv6 --subnet=fd00:dead:beef::/48 bridge6
-  #   docker run -d --restart=always \
-  #     -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  #     --privileged --net=host robbertkl/ipv6nat
-  # This gives boulder IPv6 connectivity, allowing HTTP-01 validation
-  # against domains that resolve to IPv6 addresses (AAAA records).
+  # IPv6 NAT network. Provides IPv6 connectivity to boulder container,
+  # allowing HTTP-01 challenge validation against domains that resolve
+  # to IPv6 addresses (AAAA records).
+  #
+  # Uses Docker 27+ native IPv6 NAT (replaces external ipv6nat container).
+  # Requires /etc/docker/daemon.json to have:
+  #   {
+  #     "experimental": true,
+  #     "ip6tables": true
+  #   }
   bridge6:
-    external: true
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fd00:dead:beef::/48
