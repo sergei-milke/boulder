@@ -145,6 +145,8 @@ services:
     image: hashicorp/consul:1.22.6
     volumes:
      - ./test/:/test/:cached
+    ports:
+      - 8501:8500   # Consul UI (8501 на хосте, чтобы не конфликтовать с nginx на 8500)
     networks:
       bouldernet:
         ipv4_address: 10.77.77.10
