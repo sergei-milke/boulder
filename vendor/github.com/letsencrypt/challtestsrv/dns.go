@@ -323,16 +323,19 @@ func (s *ChallSrv) aaaaAnswers(q dns.Question) []dns.RR {
 	if defaultIPv6 := s.GetDefaultDNSIPv6(); len(values) == 0 && defaultIPv6 != "" {
 		values = []string{defaultIPv6}
 	}
-	// Use real DNS forwarding if no mock data and no default
-	if len(values) == 0 && s.realDNSForwarder != nil {
-		answers, err := s.realDNSForwarder.ForwardQuery(q.Name, dns.TypeAAAA)
-		if err != nil {
-			s.log.Printf("[REAL DNS FORWARDING] Failed to forward AAAA query for %s: %v", q.Name, err)
-		} else if len(answers) > 0 {
-			// Use the answers from real DNS
-			return answers
-		}
-	}
+	// AAAA forwarding disabled: Boulder VA in docker has no IPv6 connectivity,
+	// so resolving real AAAA records causes "Network unreachable" during
+	// HTTP-01 challenge validation. Force IPv4-only validation by skipping
+	// AAAA forwarding to upstream DNS.
+	// if len(values) == 0 && s.realDNSForwarder != nil {
+	// 	answers, err := s.realDNSForwarder.ForwardQuery(q.Name, dns.TypeAAAA)
+	// 	if err != nil {
+	// 		s.log.Printf("[REAL DNS FORWARDING] Failed to forward AAAA query for %s: %v", q.Name, err)
+	// 	} else if len(answers) > 0 {
+	// 		// Use the answers from real DNS
+	// 		return answers
+	// 	}
+	// }
 	for _, resp := range values {
 		ipAddr := net.ParseIP(resp)
 		if ipAddr == nil || ipAddr.To4() != nil {
