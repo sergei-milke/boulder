@@ -76,7 +76,7 @@ services {
 services {
   id      = "dns-a"
   name    = "dns"
-  address = "8.8.8.8"
+  address = "10.67.48.221"
   port    = 53
   tags    = ["udp"] // Required for SRV RR support in VA RVA.
 }
@@ -84,7 +84,7 @@ services {
 services {
   id      = "dns-b"
   name    = "dns"
-  address = "8.8.8.8"
+  address = "10.67.48.222"
   port    = 53
   tags    = ["udp"] // Required for SRV RR support in VA RVA.
 }
