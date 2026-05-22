@@ -4,8 +4,9 @@ client_addr = "0.0.0.0"
 bind_addr   = "10.77.77.10"
 log_level   = "ERROR"
 
-# Forward DNS queries that consul doesn't know about to public DNS servers
-recursors = ["8.8.8.8", "1.1.1.1"]
+# Forward DNS queries that consul doesn't know about to upstream DNS servers.
+# Default values are public DNS, but can be overridden for private networks.
+recursors = ["10.67.48.221", "10.67.48.222"]
 // When set, uses a subset of the agent's TLS configuration (key_file,
 // cert_file, ca_file, ca_path, and server_name) to set up the client for HTTP
 // or gRPC health checks. This allows services requiring 2-way TLS to be checked
