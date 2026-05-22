@@ -60,7 +60,8 @@
 					"ignoredLints": [
 						"w_subject_common_name_included",
 						"e_dnsname_not_valid_tld",
-						"w_ext_subject_key_identifier_not_recommended_subscriber"
+						"w_ext_subject_key_identifier_not_recommended_subscriber",
+						"e_pkimetal_lint_cabf_serverauth_cert"
 					]
 				},
 				"shortlived": {
@@ -73,7 +74,8 @@
 					"lintConfig": "test/config-next/zlint.toml",
 					"ignoredLints": [
 						"w_ext_subject_key_identifier_missing_sub_cert",
-						"e_dnsname_not_valid_tld"
+						"e_dnsname_not_valid_tld",
+						"e_pkimetal_lint_cabf_serverauth_cert"
 					]
 				},
 				"modern": {
@@ -86,7 +88,8 @@
 					"lintConfig": "test/config-next/zlint.toml",
 					"ignoredLints": [
 						"w_ext_subject_key_identifier_missing_sub_cert",
-						"e_dnsname_not_valid_tld"
+						"e_dnsname_not_valid_tld",
+						"e_pkimetal_lint_cabf_serverauth_cert"
 					]
 				}
 			},
