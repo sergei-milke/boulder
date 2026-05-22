@@ -11,6 +11,7 @@
 			}
 		},
 		"dnsTimeout": "1s",
+		"dnsAllowLoopbackAddresses": true,
 		"issuerDomain": "happy-hacker-ca.invalid",
 		"tls": {
 			"caCertfile": "test/certs/ipki/minica.pem",
