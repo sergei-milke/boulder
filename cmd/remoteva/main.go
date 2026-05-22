@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"flag"
+	"net/netip"
 	"os"
 	"time"
 
@@ -117,6 +118,13 @@ func main() {
 		logger,
 		tlsConfig)
 
+	// reservedIPChecker checks if an IP is in a reserved range (RFC1918, etc.)
+	// In test environments with private IPs, we use a noop checker.
+	reservedIPChecker := iana.IsReservedAddr
+	if c.RVA.DNSAllowLoopbackAddresses {
+		reservedIPChecker = func(addr netip.Addr) error { return nil }
+	}
+
 	vai, err := va.NewValidationAuthorityImpl(
 		resolver,
 		nil, // Our RVAs will never have RVAs of their own.
@@ -128,7 +136,7 @@ func main() {
 		c.RVA.AccountURIPrefixes,
 		c.RVA.Perspective,
 		c.RVA.RIR,
-		iana.IsReservedAddr,
+		reservedIPChecker,
 		0,
 		c.RVA.DNSAllowLoopbackAddresses,
 		nil,
