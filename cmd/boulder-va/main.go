@@ -3,6 +3,7 @@ package notmain
 import (
 	"context"
 	"flag"
+	"net/netip"
 	"os"
 	"time"
 
@@ -151,6 +152,13 @@ func main() {
 		}
 	}
 
+	// reservedIPChecker checks if an IP is in a reserved range (RFC1918, etc.)
+	// In test environments with private IPs, we use a noop checker.
+	reservedIPChecker := iana.IsReservedAddr
+	if c.VA.DNSAllowLoopbackAddresses {
+		reservedIPChecker = func(addr netip.Addr) error { return nil }
+	}
+
 	var experimentalVA *va.ValidationAuthorityImpl
 	var experimentalVASampleRate float64
 	var experimentalVATimeout time.Duration
@@ -190,7 +198,7 @@ func main() {
 			c.VA.AccountURIPrefixes,
 			"Experimental",
 			"",
-			iana.IsReservedAddr,
+			reservedIPChecker,
 			0,
 			c.VA.DNSAllowLoopbackAddresses,
 			nil,
@@ -213,7 +221,7 @@ func main() {
 		c.VA.AccountURIPrefixes,
 		va.PrimaryPerspective,
 		"",
-		iana.IsReservedAddr,
+		reservedIPChecker,
 		c.VA.SlowRemoteTimeout.Duration,
 		c.VA.DNSAllowLoopbackAddresses,
 		experimentalVA,
