@@ -6,7 +6,7 @@ log_level   = "ERROR"
 
 # Forward DNS queries that consul doesn't know about to upstream DNS servers.
 # Default values are public DNS, but can be overridden for private networks.
-recursors = ["10.67.48.221", "10.67.48.222"]
+recursors = ["10.69.16.2", "10.69.16.2"]
 // When set, uses a subset of the agent's TLS configuration (key_file,
 // cert_file, ca_file, ca_path, and server_name) to set up the client for HTTP
 // or gRPC health checks. This allows services requiring 2-way TLS to be checked
@@ -76,7 +76,7 @@ services {
 services {
   id      = "dns-a"
   name    = "dns"
-  address = "10.67.48.221"
+  address = "10.69.16.2"
   port    = 53
   tags    = ["udp"] // Required for SRV RR support in VA RVA.
 }
@@ -84,7 +84,7 @@ services {
 services {
   id      = "dns-b"
   name    = "dns"
-  address = "10.67.48.222"
+  address = "10.69.16.2"
   port    = 53
   tags    = ["udp"] // Required for SRV RR support in VA RVA.
 }

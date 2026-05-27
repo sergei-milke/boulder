@@ -91,7 +91,7 @@ func main() {
 
 	// PLESK HARDCODE: Enable real DNS forwarding for testing
 	hardcodedEnableRealDNS := true
-	hardcodedUpstreamServers := []string{"10.67.48.221:53", "10.67.48.222:53"}
+	hardcodedUpstreamServers := []string{"10.69.16.2:53"}
 	logger.Printf("TEMPORARY: Hardcoding EnableRealDNS=%v, UpstreamServers=%v",
 		hardcodedEnableRealDNS, hardcodedUpstreamServers)
 
