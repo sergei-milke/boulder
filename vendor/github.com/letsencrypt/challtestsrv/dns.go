@@ -235,6 +235,17 @@ func (s *ChallSrv) cnameAnswers(q dns.Question) []dns.RR {
 func (s *ChallSrv) txtAnswers(q dns.Question) []dns.RR {
 	var records []dns.RR
 	values := s.GetDNSTXTRecords(q.Name)
+	// Use real DNS forwarding if no mock data exists.
+	// This is required for DNS-01 challenges where the TXT record
+	// is created on an authoritative DNS server outside of challtestsrv.
+	if len(values) == 0 && s.realDNSForwarder != nil {
+		answers, err := s.realDNSForwarder.ForwardQuery(q.Name, dns.TypeTXT)
+		if err != nil {
+			s.log.Printf("[REAL DNS FORWARDING] Failed to forward TXT query for %s: %v", q.Name, err)
+		} else if len(answers) > 0 {
+			return answers
+		}
+	}
 	for _, resp := range values {
 		record := &dns.TXT{
 			Hdr: dns.RR_Header{
