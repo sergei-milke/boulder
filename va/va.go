@@ -482,7 +482,34 @@ func (va *ValidationAuthorityImpl) validateChallenge(
 ) ([]core.ValidationRecord, error) {
 	switch kind {
 	case core.ChallengeTypeHTTP01:
-		return va.validateHTTP01(ctx, ident, token, keyAuthorization)
+		// WebPros: retry on validation failure to tolerate the race between
+		// Plesk writing the challenge file + reloading nginx and Boulder
+		// performing HTTP-01 validation. Without this, fresh customer domains
+		// intermittently fail with 404 because the per-domain HTTPS vhost
+		// has not been reloaded yet and the SNI request falls through to
+		// the Plesk catch-all server block.
+		const httpRetryAttempts = 5
+		const httpRetryDelay = 1 * time.Second
+		var records []core.ValidationRecord
+		var err error
+		for attempt := 0; attempt < httpRetryAttempts; attempt++ {
+			records, err = va.validateHTTP01(ctx, ident, token, keyAuthorization)
+			if err == nil {
+				return records, nil
+			}
+			if errors.Is(err, berrors.Malformed) {
+				return records, err
+			}
+			if attempt+1 == httpRetryAttempts {
+				break
+			}
+			select {
+			case <-ctx.Done():
+				return records, ctx.Err()
+			case <-time.After(httpRetryDelay):
+			}
+		}
+		return records, err
 	case core.ChallengeTypeDNS01:
 		// Strip a (potential) leading wildcard token from the identifier.
 		ident.Value = strings.TrimPrefix(ident.Value, "*.")
