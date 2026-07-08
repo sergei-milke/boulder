@@ -3,7 +3,7 @@
 package challtestsrv
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -13,7 +13,7 @@ import (
 
 const (
 	// Default to using localhost for both A and AAAA queries that don't match
-	// more specific mock host data.
+	// a host in the dnsData maps.
 	defaultIPv4 = "127.0.0.1"
 	defaultIPv6 = "::1"
 )
@@ -45,13 +45,8 @@ type ChallSrv struct {
 	// responses.
 	httpOne map[string]string
 
-	// dnsOne is a map of DNS host values to key authorizations used for DNS-01
-	// responses.
-	dnsOne map[string][]string
-
-	// dnsMocks holds mock DNS data used to respond to DNS queries other than
-	// DNS-01 TXT challenge lookups.
-	dnsMocks mockDNSData
+	// dnsData is the data used to respond to all DNS queries.
+	dnsData dnsData
 
 	// tlsALPNOne is a map of token values to key authorizations used for TLS-ALPN-01
 	// responses.
@@ -60,17 +55,10 @@ type ChallSrv struct {
 	// redirects is a map of paths to URLs. HTTP challenge servers respond to
 	// requests for these paths with a 301 to the corresponding URL.
 	redirects map[string]string
-
-	// enableRealDNS indicates whether real DNS forwarding is enabled
-	enableRealDNS bool
-	// upstreamDNSServers contains the list of upstream DNS servers to forward queries to
-	upstreamDNSServers []string
-	// realDNSForwarder handles forwarding DNS queries to upstream servers
-	realDNSForwarder *RealDNSForwarder
 }
 
-// mockDNSData holds mock responses for DNS A, AAAA, and CAA lookups.
-type mockDNSData struct {
+// dnsData holds the data used to respond to all DNS queries.
+type dnsData struct {
 	// The IPv4 address used for all A record responses that don't match a host in
 	// aRecords.
 	defaultIPv4 string
@@ -84,18 +72,11 @@ type mockDNSData struct {
 	// A map of host to TXT records.
 	txtRecords map[string][]string
 	// A map of host to CAA policies for CAA responses.
-	caaRecords map[string][]MockCAAPolicy
+	caaRecords map[string][]CAAPolicy
 	// A map of host to CNAME records.
 	cnameRecords map[string]string
 	// A map of hostnames that should receive a SERVFAIL response for all queries.
 	servFailRecords map[string]bool
-}
-
-// MockCAAPolicy holds a tag and a value for a CAA record. See
-// https://tools.ietf.org/html/rfc6844
-type MockCAAPolicy struct {
-	Tag   string
-	Value string
 }
 
 // Config holds challenge server configuration
@@ -116,12 +97,6 @@ type Config struct {
 	DOHCert string
 	// DOHCertKey is required if DOHAddrs is nonempty.
 	DOHCertKey string
-
-	// EnableRealDNS enables real DNS forwarding for queries without mock data
-	EnableRealDNS bool
-	// UpstreamDNSServers is a list of upstream DNS servers to forward queries to
-	// when EnableRealDNS is true and no mock data exists
-	UpstreamDNSServers []string
 }
 
 // validate checks that a challenge server Config is valid. To be valid it must
@@ -132,10 +107,11 @@ func (c *Config) validate() error {
 	if len(c.HTTPOneAddrs) < 1 &&
 		len(c.HTTPSOneAddrs) < 1 &&
 		len(c.DNSAddrs) < 1 &&
+		len(c.DOHAddrs) < 1 &&
 		len(c.TLSALPNOneAddrs) < 1 {
-		return fmt.Errorf(
+		return errors.New(
 			"config must specify at least one HTTPOneAddrs entry, one HTTPSOneAddr " +
-				"entry, one DOHAddrs, one DNSOneAddrs entry, or one TLSALPNOneAddrs entry")
+				"entry, one DOHAddrs, one DNSAddrs entry, or one TLSALPNOneAddrs entry")
 	}
 	// If there is no configured log make a default with a prefix
 	if c.Log == nil {
@@ -152,30 +128,21 @@ func New(config Config) (*ChallSrv, error) {
 	}
 
 	challSrv := &ChallSrv{
-		log:                config.Log,
-		requestHistory:     make(map[string]map[RequestEventType][]RequestEvent),
-		httpOne:            make(map[string]string),
-		dnsOne:             make(map[string][]string),
-		tlsALPNOne:         make(map[string]string),
-		redirects:          make(map[string]string),
-		enableRealDNS:      config.EnableRealDNS,
-		upstreamDNSServers: config.UpstreamDNSServers,
-		dnsMocks: mockDNSData{
+		log:            config.Log,
+		requestHistory: make(map[string]map[RequestEventType][]RequestEvent),
+		httpOne:        make(map[string]string),
+		tlsALPNOne:     make(map[string]string),
+		redirects:      make(map[string]string),
+		dnsData: dnsData{
 			defaultIPv4:     defaultIPv4,
 			defaultIPv6:     defaultIPv6,
 			aRecords:        make(map[string][]string),
 			aaaaRecords:     make(map[string][]string),
 			txtRecords:      make(map[string][]string),
-			caaRecords:      make(map[string][]MockCAAPolicy),
+			caaRecords:      make(map[string][]CAAPolicy),
 			cnameRecords:    make(map[string]string),
 			servFailRecords: make(map[string]bool),
 		},
-	}
-
-	// Initialize real DNS forwarder if enabled
-	if config.EnableRealDNS && len(config.UpstreamDNSServers) > 0 {
-		challSrv.realDNSForwarder = NewRealDNSForwarder(config.Log, config.UpstreamDNSServers)
-		config.Log.Printf("Real DNS forwarding enabled with upstream servers: %v", config.UpstreamDNSServers)
 	}
 
 	// If there are HTTP-01 addresses configured, create HTTP-01 servers with
